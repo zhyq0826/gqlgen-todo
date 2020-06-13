@@ -1,0 +1,39 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/executor"
+	"github.com/zhyq0826/gqlgen-todo/graph"
+	"github.com/zhyq0826/gqlgen-todo/graph/generated"
+)
+
+func main() {
+	schema := generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}})
+	myExecutor := executor.New(schema)
+	ctx := context.Background()
+	ctx = graphql.StartOperationTrace(ctx)
+	query := `mutation ($input: ProgramingLanguageInput!) {
+		addProgramingLanguage(input: $input)
+	}`
+	variables := map[string]interface{}{
+		"input": map[string]interface{}{
+			"appID":                 "1",
+			"programingLanguageIDs": []int{1},
+		},
+	}
+	optCtx, err := myExecutor.CreateOperationContext(ctx, &graphql.RawParams{
+		Query:     query,
+		Variables: variables,
+	})
+
+	if err != nil {
+		fmt.Println(" create request error ===>", err)
+	}
+	respHandle, ctx := myExecutor.DispatchOperation(ctx, optCtx)
+	resp := respHandle(ctx)
+	result, err1 := resp.Data.MarshalJSON()
+	fmt.Println("result = >", string(result))
+	fmt.Println("err =>", err1)
+}
