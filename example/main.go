@@ -9,11 +9,7 @@ import (
 	"github.com/zhyq0826/gqlgen-todo/graph/generated"
 )
 
-func main() {
-	schema := generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}})
-	myExecutor := executor.New(schema)
-	ctx := context.Background()
-	ctx = graphql.StartOperationTrace(ctx)
+func test1(){
 	query := `mutation ($input: ProgramingLanguageInput!) {
 		addProgramingLanguage(input: $input)
 	}`
@@ -23,6 +19,26 @@ func main() {
 			"programingLanguageIDs": []int{1},
 		},
 	}
+
+	exec(query, variables)
+}
+
+func test2(){
+	query := `mutation{
+	  addProgramingLanguage(input: {
+		appID: "1",
+		programingLanguageIDs: [1]
+	  })
+	}`
+	exec(query, nil)
+}
+
+func exec(query string, variables map[string]interface{}){
+	schema := generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}})
+	myExecutor := executor.New(schema)
+	ctx := context.Background()
+	ctx = graphql.StartOperationTrace(ctx)
+
 	optCtx, err := myExecutor.CreateOperationContext(ctx, &graphql.RawParams{
 		Query:     query,
 		Variables: variables,
@@ -36,4 +52,10 @@ func main() {
 	result, err1 := resp.Data.MarshalJSON()
 	fmt.Println("result = >", string(result))
 	fmt.Println("err =>", err1)
+}
+
+
+func main() {
+	test1()
+	test2()
 }
